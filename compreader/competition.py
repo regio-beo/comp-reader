@@ -28,8 +28,9 @@ class Competition:
     def printScores(self):
         print(f'Final scores of {self.name}')
         pilots = sorted(self.pilots, key=lambda p: p.total_points, reverse=True)
+        max_score = pilots[0].total_points
         for p in pilots:
-            p.print()
+            p.print_with_diff(max_score)
 
 
 class Pilot:
@@ -40,6 +41,10 @@ class Pilot:
     
     def print(self):
         print(f'{self.name}: {self.total_points}')
+    
+    def print_with_diff(self, max_score):
+        print(f'{self.name}: {self.total_points} ({max_score-self.total_points})')
+
 
 class Task:
 

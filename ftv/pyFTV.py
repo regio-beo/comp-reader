@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from compreader.competition import Competition, Pilot, Task, Participant 
+
+
 # Script to play with FTV Scores
 
 
@@ -236,7 +239,39 @@ def compute_day_quality_change(day_quality, competition_constructor, ftv):
         for p in competition.pilots:
             pilots2scores[p.name].append(p.total_points)
     return pilots2scores
+
+def construct_difference_sample(days, t3_quality):
+    competition = Competition('Difference Game')
+
+    t1_quality = 1.0
+    t2_quality = 0.8
+
+    p1 = competition.addPilot('p1')
+    p2 = competition.addPilot('p2')
+    p3 = competition.addPilot('p3')
+
+    # difference based participation:
+    t1 = competition.addTask('t1', t1_quality)
+    t1.addParticipation(p1, t1_quality*1000-0)
+    t1.addParticipation(p2, t1_quality*1000-10)
+    t1.addParticipation(p3, t1_quality*1000-50)    
+    if days == 1:
+        return competition
     
+    # day two
+    t2 = competition.addTask('t2', t2_quality)
+    t2.addParticipation(p1, t2_quality*1000-0)
+    t2.addParticipation(p2, t2_quality*1000-10)
+    t2.addParticipation(p3, t2_quality*1000-50)
+    if days == 2:
+        return competition
+    
+    # day three
+    t3 = competition.addTask('t3', t3_quality)
+    t3.addParticipation(p1, t3_quality*1000-66)
+    t3.addParticipation(p2, t3_quality*1000-0)
+    t3.addParticipation(p3, t3_quality*1000-10)
+    return competition
 
 def plot_day_quality_change(competition_constructor, ftv):
     day_quality = np.linspace(0.1, 1.0, 1000)    
@@ -256,21 +291,37 @@ def plot_day_quality_change(competition_constructor, ftv):
 
 #plot_day_quality_change(construct_verbier_sport, 0.4)
 
-
-competition = construct_sample(1.0)
-competition.scoreAndPrint(SumStrategy())
+# Simulate day 1:
+competition = construct_difference_sample(1, 0.5)
 competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
+
+# Simulate day 2:
+competition = construct_difference_sample(2, 0.5)
+competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
+
+# Simulate day 3:
+competition = construct_difference_sample(3, 0.5)
+competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
+
+# Simulate day 3:
+competition = construct_difference_sample(3, 0.771)
+competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
+
+# Alternative day 3-1000er:
+competition = construct_difference_sample(3, 1.0)
+competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
+
 
 #plot_ftv_scores(competition)
 #plot_day_quality_change(construct_sample, 0.0)
 #plot_day_quality_change(construct_sample_2, 0.0)
 #plot_day_quality_change(construct_sample, 0.1)
 #plot_day_quality_change(construct_sample, 0.2)
-plt.figure()
-plot_day_quality_change(construct_sample, 0.3)
-plt.figure()
-plot_day_quality_change(construct_sample_2, 0.3)
-plt.show()
+#plt.figure()
+#plot_day_quality_change(construct_sample, 0.3)
+#plt.figure()
+#plot_day_quality_change(construct_sample_2, 0.3)
+#plt.show()
 #plot_day_quality_change(construct_sample, 0.4)
 #plot_day_quality_change(construct_sample, 0.5)
 
