@@ -2,8 +2,9 @@ import camelot
 import pandas as pd
 
 from competition import Competition, Pilot, Task, Participant 
+from ftv import FixedTotalValidityStrategy
 
-PAGES = "all" # "all"
+PAGES = "1" # "all"
 
 class CompetitionFile:
 
@@ -38,6 +39,17 @@ class CompetitionFile:
         result.reset_index(inplace=True, drop=True)
 
         # convert data types
+        for idx in result.index:
+            for i in range(n_tasks):
+                try:
+                    entry = result.at[idx, result.columns[7+i]]
+                    pos = entry.index('/')                    
+                    result.at[idx, result.columns[7+i]] = entry[pos+1:]
+                except ValueError:
+                    pass
+
+            
+                
         for i in range(n_tasks):
             result.isetitem(7+i, pd.to_numeric(result.iloc[:, 7+i]))
         
@@ -56,7 +68,10 @@ class CompetitionFile:
         for i,t in enumerate(tasks):
             for p,(_,row) in zip(pilots, result.iterrows()):
                 t.addParticipation(p, row[t.name])
+        
+        return competition
 
+    def quickthing(self):
         # Quick Change to Display Differences
         result.iloc[:, 7].info()
         result.iloc[:, 7] = pd.to_numeric(result.iloc[:, 7])
@@ -92,14 +107,25 @@ class TaskFile:
 if __name__ == "__main__":
     
     # run tutorial
+    
     # read verbier meta info
     #path = "files/swiss-open-verbier/E1-SportsClass-V1.pdf"
     #path = "files/swiss-open-verbier/E1-SportsClass-V2-2.pdf"
-    path = "files/swiss-open-verbier/E1-Overall-V2.pdf"    
-    file = CompetitionFile("Swiss-Open-Verbier", path)
+    #path = "files/swiss-open-verbier/E1-Overall-V2.pdf"    
+    #file = CompetitionFile("Swiss-Open-Verbier", path)
     #file.read()
-    file.read_competition()
+    #competition = file.read_competition()
+    #competition.addVirtualTask(1., 0)
+    #competition.scoreAndFtvPrint(FixedTotalValidityStrategy(0.3))
 
+    # Alpen Cup
+    #path = "files/alpen-cup/AC_SportsClass_V1.pdf" # does not work of image format
+    path = "files/alpen-cup/AC_SportsClass_V4.pdf"
+    file = CompetitionFile("Alpen Cup", path)
+    #file.read()
+    competition = file.read_competition()
+    competition.addVirtualTask(0.5, 500)
+    competition.scoreAndFtvPrint(FixedTotalValidityStrategy(0.25))
 
     
 

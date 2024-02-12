@@ -1,83 +1,4 @@
-import matplotlib.pyplot as plt
-import numpy as np
-
-from compreader.competition import Competition, Pilot, Task, Participant 
-
-
-# Script to play with FTV Scores
-
-
-### Scoring Strategies:
-class SumStrategy:
-    
-    def apply(self, competition):
-        for task in competition.tasks:
-            for participant in task.participants:
-                participant.pilot.total_points += participant.points
-
-class PerformanceSumStrategy:
-
-    def apply(self, competition):
-        for task in competition.tasks:
-            winner_score = task.winnerScore()
-            for participant in task.participants:
-                participant.performance = participant.points / winner_score
-                participant.pilot.total_points += participant.performance
-
-class FixedTotalValidityStrategy:
-
-    def __init__(self, ftv, verbose=False, do_round=True):
-        self.ftv = ftv
-        self.verbose = verbose
-        self.do_round=do_round
-    
-    def print(self, *args):
-        if self.verbose:
-            print('DEBUG:', *args)
-    
-    def apply(self, competition):
-        # compute fixed total validity:
-        total_score = sum([t.winnerScore() for t in competition.tasks])
-        if self.do_round:
-            fixed_total_validity = round(total_score * (1-self.ftv))
-        else:
-            fixed_total_validity = total_score * (1-self.ftv)
-        self.print('use fixed total validity:', fixed_total_validity, 'of total score', total_score)
-
-        # compute performances:
-        pilots2scores = dict()
-        for pilot in competition.pilots:
-            pilots2scores[pilot] = []
-        for task in competition.tasks:
-            winner_score = task.winnerScore()
-            for participant in task.participants:
-                participant.performance = participant.points / winner_score
-                participant.winner_score = winner_score # helping attribute
-                pilots2scores[participant.pilot].append(participant)
-        #print('pilots2scores', pilots2scores)
-
-        # compute FTVs        
-        for pilot in competition.pilots:
-            ftv_left = fixed_total_validity
-            scores = pilots2scores[pilot]
-            scores = sorted(scores, key=lambda participant: participant.performance, reverse=True)
-            self.print(f'{pilot.name}:')
-            for s in scores:
-                if ftv_left == 0:
-                    continue
-                if s.winner_score <= ftv_left:
-                    pilot.total_points += s.points
-                    ftv_left -= s.winner_score
-                    self.print(f'add to score: (ftv-left: {ftv_left}, task-score: {s.points}, current-score:{pilot.total_points})')
-                else:
-                    if self.do_round:
-                        partial_score = round((ftv_left/s.winner_score)*s.points)
-                    else:
-                        partial_score = (ftv_left/s.winner_score)*s.points
-                    pilot.total_points += partial_score                    
-                    self.print(f'add partial ({ftv_left}/{s.winner_score})={partial_score}, current-score:{pilot.total_points})')
-                    ftv_left -= ftv_left
-                #print(s.performance, s.points, s.winner_score)
+from compreader.ftv import SumStrategy, PerformanceSumStrategy, FixedTotalValidityStrategy
 
 ### Construct PWC Example
 def construct_pwc_example():
@@ -292,24 +213,24 @@ def plot_day_quality_change(competition_constructor, ftv):
 #plot_day_quality_change(construct_verbier_sport, 0.4)
 
 # Simulate day 1:
-competition = construct_difference_sample(1, 0.5)
-competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
+#competition = construct_difference_sample(1, 0.5)
+#competition.scoreAndFtvPrint(FixedTotalValidityStrategy(0.3))
 
 # Simulate day 2:
-competition = construct_difference_sample(2, 0.5)
-competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
+#competition = construct_difference_sample(2, 0.5)
+#competition.scoreAndFtvPrint(FixedTotalValidityStrategy(0.3))
 
 # Simulate day 3:
 competition = construct_difference_sample(3, 0.5)
-competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
+competition.scoreAndFtvPrint(FixedTotalValidityStrategy(0.3))
 
 # Simulate day 3:
-competition = construct_difference_sample(3, 0.771)
-competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
+#competition = construct_difference_sample(3, 0.771)
+#competition.scoreAndFtvPrint(FixedTotalValidityStrategy(0.3))
 
 # Alternative day 3-1000er:
-competition = construct_difference_sample(3, 1.0)
-competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
+#competition = construct_difference_sample(3, 1.0)
+#competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
 
 
 #plot_ftv_scores(competition)
@@ -324,9 +245,6 @@ competition.scoreAndPrint(FixedTotalValidityStrategy(0.3))
 #plt.show()
 #plot_day_quality_change(construct_sample, 0.4)
 #plot_day_quality_change(construct_sample, 0.5)
-
-
-
 
 
 
