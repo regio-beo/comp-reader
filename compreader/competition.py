@@ -91,6 +91,15 @@ class Competition:
                 p.performance_sigma = 0.01
             #print(f'{p.name:>20}: {p.performance_mu:.2f}, +-{p.performance_sigma:.2f}')
 
+        # use result to capture winning condition
+        winner_pilot_points = []
+        winner_condition = lambda pos: pos == 0
+        winner_name = 'Sommerfeld'
+        competitor_names = ['Karpfinger', 'Brodbeck', 'Fankhauser']        
+        competitor_pilot_points = dict()
+        for name in competitor_names:
+            competitor_pilot_points[name] = []
+
         prev_counter = None
         for i in tqdm(range(n)):
             for _ in range(n_tasks):
@@ -123,6 +132,21 @@ class Competition:
             monte_pilots = sorted(self.pilots, key=lambda p: p.total_points, reverse=True)
             for pos,pilot in enumerate(monte_pilots):
                 counter[pilot.counter_id, pos] += 1
+
+                if winner_name in pilot.name and winner_condition(pos):                    
+                    # collect points for each appended task (and sum them up):
+                    winner_points = 0
+                    for i in range(n_tasks):
+                        winner_points += self.tasks[-(i+1)].participantByName(winner_name).points
+                    winner_pilot_points.append(winner_points)
+                    
+                    for name in competitor_names:
+                        competition_points = 0
+                        for i in range(n_tasks):
+                            competition_points += self.tasks[-(i+1)].participantByName(name).points
+                        competitor_pilot_points[name].append(competition_points)
+
+
             self.tasks = self.tasks[:-n_tasks] # remove monte task
 
             if i % 100 == 0:        
@@ -130,7 +154,8 @@ class Competition:
                 if prev_counter is not None:
                     change = np.mean((prev_counter-counter_normalized)**2)
                     #print('change:', change)
-                    if change < 1e-7:
+                    EARLY_STOP = True
+                    if EARLY_STOP and change < 1e-7:
                         n = i # fix early stopping
                         break
                 prev_counter = counter_normalized
@@ -156,6 +181,32 @@ class Competition:
 
         # create plot:
         mpl.rcParams['figure.dpi'] = 75
+
+        # Beni vs Jakob Plot:
+        fig, ax = plt.subplots()
+        for name in competitor_names:
+
+            # filter max values per line:
+            max_values_x = np.array([0]*1000*n_tasks)
+            for x,y in zip(competitor_pilot_points[name], winner_pilot_points):
+                max_values_x[y-1] = max(max_values_x[y-1], x)
+            ax.scatter(max_values_x[max_values_x>0], np.arange(1, 1001)[max_values_x>0], alpha=0.3, s=50, label=name, linewidth=0)
+
+            #ax.scatter(competitor_pilot_points[name], winner_pilot_points, alpha=0.3, s=10, label=name, linewidth=0)        
+        ax.set_xlim(0, 1000*n_tasks)
+        ax.set_ylim(0, 1000*n_tasks)
+        ax.set_xticks(np.linspace(0, 1000*n_tasks, 21))
+        ax.set_yticks(np.linspace(0, 1000*n_tasks, 21))
+        ax.set_xlabel(', '.join(competitor_names))
+        ax.set_ylabel(winner_name)
+        ax.set_aspect('equal')
+        ax.legend()
+        ax.set_title(f'{winner_name} 1st')
+        plt.grid()
+
+        #plt.show()
+
+        # Monte Carlo Plot:
         fig, ax = plt.subplots()
         im = ax.imshow(counter_normalized[:limit_plot, :limit_plot])
         ax.plot([0, limit_plot-1], [0, limit_plot-1], linestyle='dashed', color='r', alpha=0.6)
@@ -278,6 +329,12 @@ class Task:
 
     def winnerScore(self):
         return round(self.quality*1000)
+    
+    def participantByName(self, name):
+        for participant in self.participants:
+            if name in participant.pilot.name:
+                return participant
+        raise ValueError('Name not found!')
 
     def winnerScorebyParticipant(self):
         #return int(self.quality*1000)

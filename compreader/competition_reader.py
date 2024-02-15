@@ -138,25 +138,25 @@ if __name__ == "__main__":
 
     # Swiss Cup
     #path = "files/swiss-cup/SC-SportsClass-V11.pdf"
-    path = "files/swiss-cup/SC-Overall-V11.pdf"
-    file = CompetitionFile("Swiss Cup", path)
-    ftv = 0.4 if "SportsClass" in path else 0.3    
+    #path = "files/swiss-cup/SC-Overall-V11.pdf"
+    #file = CompetitionFile("Swiss Cup", path)
+    #ftv = 0.4 if "SportsClass" in path else 0.3    
 
     # OGO:
-    #path = "files/ogo/OGO_SportsClass_V5.pdf"
-    #file = CompetitionFile("OGO", path)
-    #ftv = 0.25
+    path = "files/ogo/OGO_SportsClass_V5.pdf"
+    file = CompetitionFile("OGO", path)
+    ftv = 0.25
 
     # min max simulation
     competition = file.read_competition()
-    competition.tasks = competition.tasks[:-2] # remove latest
-    competition.simulateMinMaxScores(1, 1.0, FixedTotalValidityStrategy(ftv)) # simulate outcomes
+    competition.tasks = competition.tasks[:-1] # remove latest
+    #competition.simulateMinMaxScores(1, 1.0, FixedTotalValidityStrategy(ftv)) # simulate outcomes
     #competition.addVirtualTask(1.0, 0)
     #competition.scoreAndFtvPrint(FixedTotalValidityStrategy(ftv))
 
     # run monte carlo simulation on task results:
-    #method = ['uniform', 'copy_task', 'uniform_max_pb', 'gaussian_pilot'][0]
-    method = ['uniform_max_pb', 'gaussian_pilot'][1]
+    method = ['uniform', 'copy_task', 'uniform_max_pb', 'gaussian_pilot'][0]
+    #method = ['uniform_max_pb', 'gaussian_pilot'][0]
     competition.monteCarloSimulation(50000, 1, 1.0, method, FixedTotalValidityStrategy(ftv))
 
     #file.read()
