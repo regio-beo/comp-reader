@@ -179,8 +179,7 @@ class Competition:
 
         names = [p.name for p in self.pilots][:limit_plot]
 
-        # create plot:
-        mpl.rcParams['figure.dpi'] = 75
+        mpl.rcParams['figure.dpi'] = 125
 
         # Beni vs Jakob Plot:
         fig, ax = plt.subplots()
@@ -193,6 +192,7 @@ class Competition:
             ax.scatter(max_values_x[max_values_x>0], np.arange(1, 1001)[max_values_x>0], alpha=0.3, s=50, label=name, linewidth=0)
 
             #ax.scatter(competitor_pilot_points[name], winner_pilot_points, alpha=0.3, s=10, label=name, linewidth=0)        
+        
         ax.set_xlim(0, 1000*n_tasks)
         ax.set_ylim(0, 1000*n_tasks)
         ax.set_xticks(np.linspace(0, 1000*n_tasks, 21))
@@ -203,8 +203,6 @@ class Competition:
         ax.legend()
         ax.set_title(f'{winner_name} 1st')
         plt.grid()
-
-        #plt.show()
 
         # Monte Carlo Plot:
         fig, ax = plt.subplots()
