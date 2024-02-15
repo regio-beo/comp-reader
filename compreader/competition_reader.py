@@ -151,10 +151,11 @@ if __name__ == "__main__":
     # min max simulation
     competition = file.read_competition()
     #competition.tasks = competition.tasks[:-1] # remove latest
+    #competition.simulateMinMaxScores(1, 1.0, FixedTotalValidityStrategy(ftv))
 
     # run monte carlo simulation on task results:
     #method = ['uniform', 'copy_task', 'uniform_max_pb', 'gaussian_pilot'][0]
-    method = ['uniform_max_pb', 'gaussian_pilot'][0]
+    method = ['uniform_max_pb', 'gaussian_pilot'][1]
     competition.monteCarloSimulation(50000, 1, 1.0, method, FixedTotalValidityStrategy(ftv))
 
     #file.read()
@@ -164,7 +165,7 @@ if __name__ == "__main__":
 
     #competition = file.read_competition()
     #competition.tasks = competition.tasks[:-1] # remove last one
-    #competition.addVirtualTask(1.0, 0)    
+    #competition.addVirtualTask(1.0, 1000)    
     #competition.scoreAndFtvPrint(FixedTotalValidityStrategy(ftv))
 
     #competition = file.read_competition()

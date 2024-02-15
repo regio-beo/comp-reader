@@ -94,8 +94,8 @@ class Competition:
         # use result to capture winning condition
         winner_pilot_points = []
         winner_condition = lambda pos: pos == 0
-        winner_name = 'Sommerfeld'
-        competitor_names = ['Karpfinger', 'Brodbeck', 'Fankhauser']        
+        winner_name = 'Benjamin'
+        competitor_names = ['Jakob', 'Georg']        
         competitor_pilot_points = dict()
         for name in competitor_names:
             competitor_pilot_points[name] = []
@@ -155,7 +155,7 @@ class Competition:
                     change = np.mean((prev_counter-counter_normalized)**2)
                     #print('change:', change)
                     EARLY_STOP = True
-                    if EARLY_STOP and change < 1e-7:
+                    if EARLY_STOP and change < 1e-6:
                         n = i # fix early stopping
                         break
                 prev_counter = counter_normalized
@@ -189,7 +189,8 @@ class Competition:
             max_values_x = np.array([0]*1000*n_tasks)
             for x,y in zip(competitor_pilot_points[name], winner_pilot_points):
                 max_values_x[y-1] = max(max_values_x[y-1], x)
-            ax.scatter(max_values_x[max_values_x>0], np.arange(1, 1001)[max_values_x>0], alpha=0.3, s=50, label=name, linewidth=0)
+            ax.scatter(max_values_x[max_values_x>0], np.arange(1, 1001)[max_values_x>0], alpha=0.3, s=10, label=name, linewidth=0)
+            ax.plot([0, 1000*n_tasks], [0, 1000*n_tasks], linestyle='dashed', color='r', alpha=0.6)
 
             #ax.scatter(competitor_pilot_points[name], winner_pilot_points, alpha=0.3, s=10, label=name, linewidth=0)        
         
@@ -259,7 +260,7 @@ class Competition:
     
     def printMinMaxScores(self):
         print(f'Extrema Scores of {self.name}:')
-        print('                     Name | current    | min              | max ')
+        print('                     Name | current    | min        | max ')
         pilots = sorted(self.pilots, key=lambda p: p.current_score, reverse=True)
         for p in pilots:
             p.print_min_max_scores()
@@ -311,8 +312,12 @@ class Pilot:
         # compute usage score to improve on minimum:
 
         print(f'{self.name:>25} | {self.current_score:>10} |' \
-            + f'{self.min_score:>5} ({self.min_position:>3}) >{self.min_improvement_performance:>3} |'\
-            + f'{self.max_score:>5} ({self.max_position:>3}) >{self.max_position_difference:>3}')
+            + f'{self.min_score:>5} ({self.min_position:>3}) |'\
+            + f'{self.max_score:>5} ({self.max_position:>3})')
+
+        #print(f'{self.name:>25} | {self.current_score:>10} |' \
+        #    + f'{self.min_score:>5} ({self.min_position:>3}) >{self.min_improvement_performance:>3} |'\
+        #    + f'{self.max_score:>5} ({self.max_position:>3}) >{self.max_position_difference:>3}')
 
 
 class Task:
