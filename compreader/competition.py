@@ -94,8 +94,10 @@ class Competition:
         # use result to capture winning condition
         winner_pilot_points = []
         winner_condition = lambda pos: pos == 0
-        winner_name = 'Benjamin'
-        competitor_names = ['Jakob', 'Georg']        
+        #winner_name = 'Benjamin'
+        #competitor_names = ['Jakob', 'Georg']        
+        winner_name = 'Aeschbacher'
+        competitor_names = ['Keller', 'Schugg']        
         competitor_pilot_points = dict()
         for name in competitor_names:
             competitor_pilot_points[name] = []
@@ -155,7 +157,7 @@ class Competition:
                     change = np.mean((prev_counter-counter_normalized)**2)
                     #print('change:', change)
                     EARLY_STOP = True
-                    if EARLY_STOP and change < 1e-6:
+                    if EARLY_STOP and change < 1e-8:
                         n = i # fix early stopping
                         break
                 prev_counter = counter_normalized

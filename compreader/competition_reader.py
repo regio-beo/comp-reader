@@ -143,14 +143,15 @@ if __name__ == "__main__":
     #ftv = 0.4 if "SportsClass" in path else 0.3    
 
     # OGO:
-    path = "files/ogo/OGO_SportsClass_V4.pdf"
+    #path = "files/ogo/OGO_SportsClass_V4.pdf"
     #path = "files/ogo/OGO_SportsClass_V5.pdf"
+    path = "files/ogo/OGO_Overall_V5.pdf"
     file = CompetitionFile("OGO", path)
     ftv = 0.25
 
     # min max simulation
     competition = file.read_competition()
-    #competition.tasks = competition.tasks[:-1] # remove latest
+    competition.tasks = competition.tasks[:-1] # remove latest
     #competition.simulateMinMaxScores(1, 1.0, FixedTotalValidityStrategy(ftv))
 
     # run monte carlo simulation on task results:
