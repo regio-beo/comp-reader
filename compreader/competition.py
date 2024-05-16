@@ -79,12 +79,17 @@ class Competition:
         # compute mu and std of pilot performances:
         for p in self.pilots:
             performances = []
-            for score in p.ftv_scores:
+            for score in p.ftv_scores: # are ftv scores already sorted?
                 if score.performance_int > 0:
                     performances.append(score.performance)
+            performances = sorted(performances, reverse=True)
             if len(performances) > 0:
                 p.performance_mu = np.mean(performances)
+                p.performance_pb = np.max(performances) # is sorted!                 
                 p.performance_sigma = np.std(performances)
+            if len(performances) > 1:
+                p.performance_top2 = np.mean(performances[:2])             
+                p.performance_sigma_top2 = np.std(performances[:2])             
             else:
                 # defaults?! average of population?
                 p.performance_mu = 0.1
@@ -94,10 +99,10 @@ class Competition:
         # use result to capture winning condition
         winner_pilot_points = []
         winner_condition = lambda pos: pos == 0
-        #winner_name = 'Benjamin'
-        #competitor_names = ['Jakob', 'Georg']        
-        winner_name = 'Aeschbacher'
-        competitor_names = ['Keller', 'Schugg']        
+        winner_name = 'Benjamin'
+        competitor_names = ['Romain', 'Henri']        
+        #winner_name = 'Aeschbacher'
+        #competitor_names = ['Keller', 'Schugg']        
         competitor_pilot_points = dict()
         for name in competitor_names:
             competitor_pilot_points[name] = []
@@ -124,6 +129,13 @@ class Competition:
                     # skill based mu sigma performance:
                     if method == 'gaussian_pilot':
                         performance = np.random.normal(loc=p.performance_mu, scale=p.performance_sigma)
+                        performance = min(1.0, performance)
+                        performance = max(0.0, performance)
+                        points = int(performance*day_quality*1000)
+
+                    # skill based on max performance:
+                    if method == 'gaussian_pilot_top2':
+                        performance = np.random.normal(loc=p.performance_top2, scale=p.performance_sigma_top2)
                         performance = min(1.0, performance)
                         performance = max(0.0, performance)
                         points = int(performance*day_quality*1000)
@@ -181,7 +193,7 @@ class Competition:
 
         names = [p.name for p in self.pilots][:limit_plot]
 
-        mpl.rcParams['figure.dpi'] = 125
+        #mpl.rcParams['figure.dpi'] = 125
 
         # Beni vs Jakob Plot:
         fig, ax = plt.subplots()
@@ -208,7 +220,9 @@ class Competition:
         plt.grid()
 
         # Monte Carlo Plot:
-        fig, ax = plt.subplots()
+        #fig, ax = plt.subplots()
+        fig = plt.figure(figsize=[24,24])
+        ax = fig.add_subplot(111)
         im = ax.imshow(counter_normalized[:limit_plot, :limit_plot])
         ax.plot([0, limit_plot-1], [0, limit_plot-1], linestyle='dashed', color='r', alpha=0.6)
 
@@ -219,11 +233,15 @@ class Competition:
         # print normalized values:
         for i in range(limit_plot):
             for j in range(limit_plot):
-                text = ax.text(j, i, f'{counter_probs[i, j]:.2f}', ha='center', va='center', color='w', size=6)
+                text = ax.text(j, i, f'{counter_probs[i, j]:.2f}', ha='center', va='center', color='w', size=4)
 
         ax.set_title(f'Monte Carlo Simulation of {n} different Task outcomes')
+        
+        # save latest
+        plt.savefig(f'./figures/scores-{self.name}-{method}.jpg', dpi=300)
+        
         #fig.tight_layout
-        plt.show()        
+        #plt.show()        
 
         #print(counter/(i+1))
 

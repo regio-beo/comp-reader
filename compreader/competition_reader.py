@@ -1,5 +1,6 @@
 import camelot
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from competition import Competition, Pilot, Task, Participant 
 from ftv import FixedTotalValidityStrategy
@@ -32,7 +33,10 @@ class CompetitionFile:
         # read task table
         df_tasks = tables[offset_table].df
         #df_tasks.columns = df_tasks.iloc[0]
-        df_tasks.columns = ['Task', 'Date', 'Distance', 'Validity', 'Type']
+        if self.name == "PWC":
+            df_tasks.columns = ['Task', 'Date', 'Distance', 'Status', 'Validity', 'Type']    
+        else:
+            df_tasks.columns = ['Task', 'Date', 'Distance', 'Validity', 'Type']
         df_tasks = df_tasks[1:]
         df_tasks.reset_index(inplace=True, drop=True)
         for idx in df_tasks.index:
@@ -145,19 +149,27 @@ if __name__ == "__main__":
     # OGO:
     #path = "files/ogo/OGO_SportsClass_V4.pdf"
     #path = "files/ogo/OGO_SportsClass_V5.pdf"
-    path = "files/ogo/OGO_Overall_V5.pdf"
-    file = CompetitionFile("OGO", path)
+    #path = "files/ogo/OGO_Overall_V5.pdf"
+    #file = CompetitionFile("OGO", path)
+    #ftv = 0.25
+
+    # PWC Grindelwald:
+    path = "files/pwc/grindelwald-overall.pdf"
+    file = CompetitionFile("PWC", path)
     ftv = 0.25
 
     # min max simulation
     competition = file.read_competition()
-    competition.tasks = competition.tasks[:-1] # remove latest
-    #competition.simulateMinMaxScores(1, 1.0, FixedTotalValidityStrategy(ftv))
+    #competition.tasks = competition.tasks[:-1] # remove latest
+    competition.simulateMinMaxScores(1, 1.0, FixedTotalValidityStrategy(ftv))
 
     # run monte carlo simulation on task results:
-    #method = ['uniform', 'copy_task', 'uniform_max_pb', 'gaussian_pilot'][0]
-    method = ['uniform_max_pb', 'gaussian_pilot'][1]
-    competition.monteCarloSimulation(50000, 1, 1.0, method, FixedTotalValidityStrategy(ftv))
+    methods = ['uniform', 'copy_task', 'uniform_max_pb', 'gaussian_pilot', 'gaussian_pilot_top2']
+    #method = ['uniform_max_pb', 'gaussian_pilot'][1]
+    for method in methods:
+        competition.monteCarloSimulation(50000, 1, 1.0, method, FixedTotalValidityStrategy(ftv), limit_plot=200)
+    
+    #plt.show()
 
     #file.read()
     #competition = file.read_competition()
