@@ -127,11 +127,15 @@ class Competition:
                         points = np.random.randint(0, int(p.ftv_scores[0].performance*day_quality*1000)+1)
 
                     # skill based mu sigma performance:
-                    if method == 'gaussian_pilot':
+                    if method == 'gaussian_pilot' or method == 'gaussian_pilot_beni0':
                         performance = np.random.normal(loc=p.performance_mu, scale=p.performance_sigma)
                         performance = min(1.0, performance)
                         performance = max(0.0, performance)
                         points = int(performance*day_quality*1000)
+
+                    if method == 'gaussian_pilot_beni0':
+                        if 'Fankhauser' in p.name:
+                            points = 0                      
 
                     # skill based on max performance:
                     if method == 'gaussian_pilot_top2':
@@ -203,7 +207,7 @@ class Competition:
             max_values_x = np.array([0]*1000*n_tasks)
             for x,y in zip(competitor_pilot_points[name], winner_pilot_points):
                 max_values_x[y-1] = max(max_values_x[y-1], x)
-            ax.scatter(max_values_x[max_values_x>0], np.arange(1, 1001)[max_values_x>0], alpha=0.3, s=10, label=name, linewidth=0)
+            ax.scatter(max_values_x[max_values_x>0], np.arange(1, 1000*n_tasks+1)[max_values_x>0], alpha=0.3, s=10, label=name, linewidth=0)
             ax.plot([0, 1000*n_tasks], [0, 1000*n_tasks], linestyle='dashed', color='r', alpha=0.6)
 
             #ax.scatter(competitor_pilot_points[name], winner_pilot_points, alpha=0.3, s=10, label=name, linewidth=0)        

@@ -1,6 +1,7 @@
 import camelot
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 from competition import Competition, Pilot, Task, Participant 
 from ftv import FixedTotalValidityStrategy
@@ -45,16 +46,20 @@ class CompetitionFile:
             df_tasks.at[idx, 'Validity'] = validity
         n_tasks = len(df_tasks)
 
-        # append additional tables:                
-        results = [tables[i].df[1:] for i in range(offset_table+1, len(tables))]
+        # append additional tables: 
+        results = [tables[offset_table+1].df[1:]] # remove header of first table    
+        results += [tables[i].df for i in range(offset_table+2, len(tables))]
         result = pd.concat(results)
         columns = list(tables[offset_table+1].df.iloc[0])
         # fix columns at Tasks:
         columns[3] = 'Sex'    
         task_names = [f'T_{i+1}' for i in range(n_tasks)]
-        result.columns = columns[:7] + task_names + columns[7+n_tasks:]      
-            
+        result.columns = columns[:7] + task_names + columns[7+n_tasks:]            
         result.reset_index(inplace=True, drop=True)
+
+        # drop rows with empty names:
+        result['Name'].replace('', np.nan, inplace=True)
+        result.dropna(subset=['Name'], inplace=True)
 
         # convert data types
         for idx in result.index:
@@ -143,8 +148,10 @@ if __name__ == "__main__":
     # Swiss Cup
     #path = "files/swiss-cup/SC-SportsClass-V11.pdf"
     #path = "files/swiss-cup/SC-Overall-V11.pdf"
-    #file = CompetitionFile("Swiss Cup", path)
-    #ftv = 0.4 if "SportsClass" in path else 0.3    
+    path = "files/swiss-cup-2024/SC_Swiss-Cup-Overall_V07.pdf"
+    file = CompetitionFile("Swiss Cup 2024", path)
+    ftv = 0.4 if "SportsClass" in path else 0.3    
+    #ftv = 0.5 # SLC
 
     # OGO:
     #path = "files/ogo/OGO_SportsClass_V4.pdf"
@@ -154,9 +161,9 @@ if __name__ == "__main__":
     #ftv = 0.25
 
     # PWC Grindelwald:
-    path = "files/pwc/grindelwald-overall.pdf"
-    file = CompetitionFile("PWC", path)
-    ftv = 0.25
+    #path = "files/pwc/grindelwald-overall.pdf"
+    #file = CompetitionFile("PWC", path)
+    #ftv = 0.25    
 
     # min max simulation
     competition = file.read_competition()
@@ -165,7 +172,8 @@ if __name__ == "__main__":
 
     # run monte carlo simulation on task results:
     methods = ['uniform', 'copy_task', 'uniform_max_pb', 'gaussian_pilot', 'gaussian_pilot_top2']
-    #method = ['uniform_max_pb', 'gaussian_pilot'][1]
+    #methods = ['uniform_max_pb', 'gaussian_pilot']
+    #methods = ['gaussian_pilot_beni0']
     for method in methods:
         competition.monteCarloSimulation(50000, 1, 1.0, method, FixedTotalValidityStrategy(ftv), limit_plot=200)
     
