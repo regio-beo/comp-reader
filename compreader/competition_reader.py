@@ -114,15 +114,34 @@ class TaskFile:
 
     def __init__(self, path):
         self.path = path
+        self.pilots_df = None
     
     def read(self):
         tables = camelot.read_pdf(self.path, pages=PAGES)
+        pilot_dfs = []
+        has_header = 1
         for t in tables:
-            print(t)
-            print(t.parsing_report)
             df = t.df
-            print(df)
+            if df.shape[1] == 16: # 16 columns
+                pilot_dfs.append(df.iloc[has_header:]) # add without header
+                has_header = 0
+            
+        df = pd.concat(pilot_dfs)
+        df.columns = ['Rank', 'Id', 'Name', 'Sex', 'Nat', 'Glider', 'Sponsor', 'SS', 'ES', 'Time', 'Speed', 'Distance', 'Dist. Points', 'Lead. Points', 'Time Points', 'Total' ]
 
+        df['Name'].replace('', np.nan, inplace=True)
+        df.dropna(subset=['Name'], inplace=True)
+
+        df.reset_index(inplace=True, drop=True)
+        self.pilots_df = df
+
+def canonical_name(name):
+    import re
+    name = name.lower()
+    name = name.translate(str.maketrans("äöüéèëàç", "aoueeeac"))
+    name = re.sub('[^a-zA-Z0-9]+', '-', name)
+    name = name.strip('-')
+    return name
 
 
 if __name__ == "__main__":
@@ -148,9 +167,9 @@ if __name__ == "__main__":
     # Swiss Cup
     #path = "files/swiss-cup/SC-SportsClass-V11.pdf"
     #path = "files/swiss-cup/SC-Overall-V11.pdf"
-    path = "files/swiss-cup-2024/SC_Swiss-Cup-Overall_V07.pdf"
-    file = CompetitionFile("Swiss Cup 2024", path)
-    ftv = 0.4 if "SportsClass" in path else 0.3    
+    #path = "files/swiss-cup-2024/SC_Swiss-Cup-Overall_V07.pdf"
+    #file = CompetitionFile("Swiss Cup 2024", path)
+    #ftv = 0.4 if "SportsClass" in path else 0.3    
     #ftv = 0.5 # SLC
 
     # OGO:
@@ -164,6 +183,17 @@ if __name__ == "__main__":
     #path = "files/pwc/grindelwald-overall.pdf"
     #file = CompetitionFile("PWC", path)
     #ftv = 0.25    
+
+    ## 2025 ##
+    path = "files/swiss-cup-2025/march/E1_T01_Sports-Class_V14.pdf"
+    file = TaskFile(path)
+    file.read()
+    canonical_names = file.pilots_df.apply(lambda row: canonical_name(row['Name']), axis=1)
+
+    for name in canonical_names:
+        print(name)
+    
+    exit()
 
     # min max simulation
     competition = file.read_competition()
